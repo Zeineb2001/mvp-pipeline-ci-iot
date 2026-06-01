@@ -1,13 +1,11 @@
 from flask import Flask, render_template, request
-import requests
 import os
+import yaml
 
 app = Flask(__name__)
 
-GITHUB_OWNER = "Zeineb2001"
-GITHUB_REPO = "mvp-pipeline-ci-iot"
-WORKFLOW_FILE = "generate-config.yml"
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+CONFIG_DIR = "configs"
+os.makedirs(CONFIG_DIR, exist_ok=True)
 
 @app.route("/")
 def index():
@@ -18,45 +16,40 @@ def generate():
     project_name = request.form["project_name"]
     device_id = request.form["device_id"]
     mqtt_host = request.form["mqtt_host"]
-    mqtt_port = request.form["mqtt_port"]
+    mqtt_port = int(request.form["mqtt_port"])
 
-    monitoring = "true" if request.form.get("monitoring") else "false"
-    security = "true" if request.form.get("security") else "false"
+    monitoring = True if request.form.get("monitoring") else False
+    security = True if request.form.get("security") else False
 
-    url = f"https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}/actions/workflows/{WORKFLOW_FILE}/dispatches"
-
-    headers = {
-        "Authorization": f"Bearer {GITHUB_TOKEN}",
-        "Accept": "application/vnd.github+json"
+    config = {
+        "projectName": project_name,
+        "deviceId": device_id,
+        "protocol": "MQTT",
+        "mqtt": {
+            "host": mqtt_host,
+            "port": mqtt_port
+        },
+        "monitoring": monitoring,
+        "security": security
     }
 
-    payload = {
-        "ref": "main",
-        "inputs": {
-            "projectName": project_name,
-            "deviceId": device_id,
-            "mqttHost": mqtt_host,
-            "mqttPort": mqtt_port,
-            "monitoring": monitoring,
-            "security": security
-        }
-    }
+    config_path = os.path.join(CONFIG_DIR, "config.yaml")
 
-    response = requests.post(url, headers=headers, json=payload)
+    with open(config_path, "w", encoding="utf-8") as f:
+        yaml.dump(config, f, sort_keys=False)
 
-    if response.status_code == 204:
-        return """
-        <h2>Pipeline CI déclenché avec succès ✅</h2>
-        <p>Va dans GitHub → Actions pour télécharger l'artifact généré.</p>
-        <a href="/">Retour</a>
-        """
-    else:
-        return f"""
-        <h2>Erreur lors du déclenchement du pipeline ❌</h2>
-        <p>Status code: {response.status_code}</p>
-        <pre>{response.text}</pre>
-        <a href="/">Retour</a>
-        """, 500
+    return """
+    <h2>Configuration générée avec succès ✅</h2>
+    <p>Le fichier <b>configs/config.yaml</b> a été créé.</p>
+    <p>Maintenant fais :</p>
+    <pre>
+git add configs/config.yaml
+git commit -m "Generate IoT configuration"
+git push origin main
+    </pre>
+    <p>Après le push, GitHub Actions va lancer le pipeline automatiquement.</p>
+    <a href="/">Retour</a>
+    """
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
