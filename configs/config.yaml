@@ -1,8 +1,8 @@
 projectName: SmartAgriculture
-deviceId: sensor-10
+deviceId: sensor-11
 protocol: MQTT
 mqtt:
-  host: mqtt.exemple.com
-  port: 1890
+  host: mqtt.company.com
+  port: 1891
 monitoring: false
 security: false
