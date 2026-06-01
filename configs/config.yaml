@@ -1,0 +1,8 @@
+projectName: Smarthome
+deviceId: sensor-06
+protocol: MQTT
+mqtt:
+  host: mqtt.exemple.com
+  port: 1887
+monitoring: false
+security: false
