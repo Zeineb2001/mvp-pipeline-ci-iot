@@ -1,0 +1,69 @@
+name: Generate IoT Configuration Artifact
+
+on:
+  workflow_dispatch:
+    inputs:
+      projectName:
+        description: "Project name"
+        required: true
+        default: "SmartFactory"
+
+      deviceId:
+        description: "Device ID"
+        required: true
+        default: "sensor-01"
+
+      mqttHost:
+        description: "MQTT host"
+        required: true
+        default: "mqtt.company.com"
+
+      mqttPort:
+        description: "MQTT port"
+        required: true
+        default: "1883"
+
+      monitoring:
+        description: "Enable monitoring"
+        required: true
+        default: "true"
+
+      security:
+        description: "Enable security"
+        required: true
+        default: "true"
+
+jobs:
+  generate-artifact:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Python dependencies
+        run: pip install pyyaml
+
+      - name: Create config file from WebView parameters
+        run: |
+          mkdir -p configs
+
+          cat > configs/config.yaml <<EOF
+          projectName: ${{ github.event.inputs.projectName }}
+          deviceId: ${{ github.event.inputs.deviceId }}
+          protocol: MQTT
+          mqtt:
+            host: ${{ github.event.inputs.mqttHost }}
+            port: ${{ github.event.inputs.mqttPort }}
+          monitoring: ${{ github.event.inputs.monitoring }}
+          security: ${{ github.event.inputs.security }}
+          EOF
+
+      - name: Launch CI pipeline
+        run: python pipeline.py
+
+      - name: Upload generated artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: iot-generated-configuration
+          path: artifacts/*.zip
