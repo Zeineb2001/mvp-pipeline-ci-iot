@@ -4,7 +4,7 @@ import zipfile
 import secrets
 
 CONFIG_FILE = "configs/config.yaml"
-TEMPLATE_DIR = "templates_ci"
+TEMPLATE_DIR = "templates"
 OUTPUT_DIR = "output"
 ARTIFACT_DIR = "artifacts"
 
@@ -12,7 +12,6 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 os.makedirs(ARTIFACT_DIR, exist_ok=True)
 
 print("=== CI PIPELINE STARTED ===")
-
 print("[1] Reading configuration from WebView...")
 with open(CONFIG_FILE, "r", encoding="utf-8") as f:
     config = yaml.safe_load(f)
