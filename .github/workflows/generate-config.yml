@@ -1,37 +1,28 @@
 name: Generate IoT Configuration Artifact
 
 on:
+  push:
+    branches:
+      - main
+
   workflow_dispatch:
     inputs:
       projectName:
         description: "Project name"
         required: true
         default: "SmartFactory"
-
       deviceId:
         description: "Device ID"
         required: true
         default: "sensor-01"
-
       mqttHost:
         description: "MQTT host"
         required: true
         default: "mqtt.company.com"
-
       mqttPort:
         description: "MQTT port"
         required: true
         default: "1883"
-
-      monitoring:
-        description: "Enable monitoring"
-        required: true
-        default: "true"
-
-      security:
-        description: "Enable security"
-        required: true
-        default: "true"
 
 jobs:
   generate-artifact:
@@ -44,19 +35,18 @@ jobs:
       - name: Install Python dependencies
         run: pip install pyyaml
 
-      - name: Create config file from WebView parameters
+      - name: Create config file
         run: |
           mkdir -p configs
-
           cat > configs/config.yaml <<EOF
-          projectName: ${{ github.event.inputs.projectName }}
-          deviceId: ${{ github.event.inputs.deviceId }}
+          projectName: ${{ github.event.inputs.projectName || 'SmartFactory' }}
+          deviceId: ${{ github.event.inputs.deviceId || 'sensor-01' }}
           protocol: MQTT
           mqtt:
-            host: ${{ github.event.inputs.mqttHost }}
-            port: ${{ github.event.inputs.mqttPort }}
-          monitoring: ${{ github.event.inputs.monitoring }}
-          security: ${{ github.event.inputs.security }}
+            host: ${{ github.event.inputs.mqttHost || 'mqtt.company.com' }}
+            port: ${{ github.event.inputs.mqttPort || '1883' }}
+          monitoring: true
+          security: true
           EOF
 
       - name: Launch CI pipeline
