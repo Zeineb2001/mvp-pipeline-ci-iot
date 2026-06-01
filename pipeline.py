@@ -6,10 +6,8 @@ import secrets
 CONFIG_FILE = "configs/config.yaml"
 TEMPLATE_DIR = "templates"
 OUTPUT_DIR = "output"
-ARTIFACT_DIR = "artifacts"
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
-os.makedirs(ARTIFACT_DIR, exist_ok=True)
 
 print("=== CI PIPELINE STARTED ===")
 print("[1] Reading configuration from WebView...")
@@ -67,7 +65,7 @@ generated_files = [
 ]
 
 print("[5] Creating artifact ZIP...")
-artifact_path = os.path.join(ARTIFACT_DIR, f"{project_name}-setup.zip")
+artifact_path = f"{project_name}-setup.zip"
 
 with zipfile.ZipFile(artifact_path, "w") as zipf:
     for file_path in generated_files:
