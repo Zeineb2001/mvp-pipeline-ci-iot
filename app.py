@@ -1,31 +1,13 @@
-from flask import Flask, render_template, request, send_file
+from flask import Flask, render_template, request
+import requests
 import os
-import zipfile
-import secrets
 
 app = Flask(__name__)
 
-TEMPLATE_DIR = "templates"
-OUTPUT_DIR = "generated"
-ARTIFACT_DIR = "artifacts"
-
-os.makedirs(OUTPUT_DIR, exist_ok=True)
-os.makedirs(ARTIFACT_DIR, exist_ok=True)
-
-def render_template_file(template_name, output_name, variables):
-    template_path = os.path.join(TEMPLATE_DIR, template_name)
-    output_path = os.path.join(OUTPUT_DIR, output_name)
-
-    with open(template_path, "r", encoding="utf-8") as f:
-        content = f.read()
-
-    for key, value in variables.items():
-        content = content.replace("${" + key + "}", str(value))
-
-    with open(output_path, "w", encoding="utf-8") as f:
-        f.write(content)
-
-    return output_path
+GITHUB_OWNER = "Zeineb2001"
+GITHUB_REPO = "mvp-pipeline-ci-iot"
+WORKFLOW_FILE = "generate-config.yml"
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 
 @app.route("/")
 def index():
@@ -37,37 +19,44 @@ def generate():
     device_id = request.form["device_id"]
     mqtt_host = request.form["mqtt_host"]
     mqtt_port = request.form["mqtt_port"]
+
     monitoring = "true" if request.form.get("monitoring") else "false"
     security = "true" if request.form.get("security") else "false"
 
-    if not mqtt_port.isdigit() or not (1 <= int(mqtt_port) <= 65535):
-        return "Erreur : port MQTT invalide", 400
+    url = f"https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}/actions/workflows/{WORKFLOW_FILE}/dispatches"
 
-    device_token = secrets.token_hex(16)
-
-    variables = {
-        "PROJECT_NAME": project_name,
-        "DEVICE_ID": device_id,
-        "MQTT_HOST": mqtt_host,
-        "MQTT_PORT": mqtt_port,
-        "MONITORING_ENABLED": monitoring,
-        "SECURITY_ENABLED": security,
-        "DEVICE_TOKEN": device_token
+    headers = {
+        "Authorization": f"Bearer {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github+json"
     }
 
-    generated_files = []
-    generated_files.append(render_template_file("mqtt-config.template.json", "mqtt-config.json", variables))
-    generated_files.append(render_template_file("docker-compose.template.yml", "docker-compose.yml", variables))
-    generated_files.append(render_template_file("env.template", ".env", variables))
-    generated_files.append(render_template_file("README.template.md", "README.md", variables))
+    payload = {
+        "ref": "main",
+        "inputs": {
+            "projectName": project_name,
+            "deviceId": device_id,
+            "mqttHost": mqtt_host,
+            "mqttPort": mqtt_port,
+            "monitoring": monitoring,
+            "security": security
+        }
+    }
 
-    artifact_path = os.path.join(ARTIFACT_DIR, f"{project_name}-setup.zip")
+    response = requests.post(url, headers=headers, json=payload)
 
-    with zipfile.ZipFile(artifact_path, "w") as zipf:
-        for file_path in generated_files:
-            zipf.write(file_path, arcname=os.path.basename(file_path))
-
-    return send_file(artifact_path, as_attachment=True)
+    if response.status_code == 204:
+        return """
+        <h2>Pipeline CI déclenché avec succès ✅</h2>
+        <p>Va dans GitHub → Actions pour télécharger l'artifact généré.</p>
+        <a href="/">Retour</a>
+        """
+    else:
+        return f"""
+        <h2>Erreur lors du déclenchement du pipeline ❌</h2>
+        <p>Status code: {response.status_code}</p>
+        <pre>{response.text}</pre>
+        <a href="/">Retour</a>
+        """, 500
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)

@@ -1,0 +1,10 @@
+{
+  "projectName": "smartHome",
+  "deviceId": "sensor-02",
+  "mqtt": {
+    "host": "mqtt.exemple.com",
+    "port": 1885
+  },
+  "monitoring": false,
+  "security": false
+}
