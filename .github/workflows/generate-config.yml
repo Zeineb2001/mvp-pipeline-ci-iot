@@ -5,25 +5,6 @@ on:
     branches:
       - main
 
-  workflow_dispatch:
-    inputs:
-      projectName:
-        description: "Project name"
-        required: true
-        default: "SmartFactory"
-      deviceId:
-        description: "Device ID"
-        required: true
-        default: "sensor-01"
-      mqttHost:
-        description: "MQTT host"
-        required: true
-        default: "mqtt.company.com"
-      mqttPort:
-        description: "MQTT port"
-        required: true
-        default: "1883"
-
 jobs:
   generate-artifact:
     runs-on: ubuntu-latest
@@ -35,19 +16,8 @@ jobs:
       - name: Install Python dependencies
         run: pip install pyyaml
 
-      - name: Create config file
-        run: |
-          mkdir -p configs
-          cat > configs/config.yaml <<EOF
-          projectName: ${{ github.event.inputs.projectName || 'SmartFactory' }}
-          deviceId: ${{ github.event.inputs.deviceId || 'sensor-01' }}
-          protocol: MQTT
-          mqtt:
-            host: ${{ github.event.inputs.mqttHost || 'mqtt.company.com' }}
-            port: ${{ github.event.inputs.mqttPort || '1883' }}
-          monitoring: true
-          security: true
-          EOF
+      - name: Display config used by pipeline
+        run: cat configs/config.yaml
 
       - name: Launch CI pipeline
         run: python pipeline.py
