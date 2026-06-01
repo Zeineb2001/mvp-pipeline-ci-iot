@@ -1,0 +1,12 @@
+version: "3.8"
+
+services:
+  mqtt-client:
+    image: eclipse-mosquitto:2
+    container_name: ${PROJECT_NAME}-mqtt
+    ports:
+      - "${MQTT_PORT}:1883"
+    env_file:
+      - .env
+    volumes:
+      - ./mqtt-config.json:/config/mqtt-config.json

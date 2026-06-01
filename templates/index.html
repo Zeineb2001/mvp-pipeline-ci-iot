@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>IoT Config Generator</title>
+    <style>
+        body { font-family: Arial; margin: 40px; }
+        label { display: block; margin-top: 12px; }
+        input { padding: 8px; width: 300px; }
+        button { margin-top: 20px; padding: 10px 18px; }
+    </style>
+</head>
+<body>
+    <h2>IoT Configuration Generator</h2>
+
+    <form method="POST" action="/generate">
+        <label>Project Name</label>
+        <input name="project_name" value="SmartFactory" required>
+
+        <label>Device ID</label>
+        <input name="device_id" value="sensor-01" required>
+
+        <label>MQTT Host</label>
+        <input name="mqtt_host" value="mqtt.company.com" required>
+
+        <label>MQTT Port</label>
+        <input name="mqtt_port" value="1883" required>
+
+        <label>
+            <input type="checkbox" name="monitoring" checked style="width:auto;">
+            Enable Monitoring
+        </label>
+
+        <label>
+            <input type="checkbox" name="security" checked style="width:auto;">
+            Enable Security
+        </label>
+
+        <button type="submit">Generate Artifact</button>
+    </form>
+</body>
+</html>
