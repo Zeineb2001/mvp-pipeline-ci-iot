@@ -1,8 +1,8 @@
-projectName: SmartRobot
+projectName: Smarthome
 deviceId: sensor-07
 protocol: MQTT
 mqtt:
-  host: mqtt.company.com
+  host: mqtt.exemple.com
   port: 1890
 monitoring: false
 security: false
